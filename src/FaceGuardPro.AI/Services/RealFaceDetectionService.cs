@@ -1,4 +1,4 @@
-﻿// src/FaceGuardPro.Core/Services/RealFaceDetectionService.cs
+﻿// src/FaceGuardPro.Core/Services/RealFaceDetectionService.cs - FIXED NAMESPACE
 using Microsoft.Extensions.Logging;
 using AutoMapper;
 using FaceGuardPro.Core.Interfaces;
@@ -66,7 +66,6 @@ public class RealFaceDetectionService : IFaceDetectionService
                     Contrast = openCvResult.Quality.Contrast,
                     Sharpness = openCvResult.Quality.Sharpness,
                     FaceSize = openCvResult.Quality.FaceSize,
-                    //IsQualityAcceptable = openCvResult.Quality.IsAcceptable,
                     IsBlurry = openCvResult.Quality.Issues.Contains("Image blurry"),
                     IsTooLightingPoor = openCvResult.Quality.Issues.Contains("Image too dark") ||
                                        openCvResult.Quality.Issues.Contains("Image too bright"),
@@ -141,8 +140,7 @@ public class RealFaceDetectionService : IFaceDetectionService
                         Brightness = openCvResult.Quality.Brightness,
                         Contrast = openCvResult.Quality.Contrast,
                         Sharpness = openCvResult.Quality.Sharpness,
-                        FaceSize = openCvResult.Quality.FaceSize,
-                        //IsQualityAcceptable = openCvResult.Quality.IsAcceptable
+                        FaceSize = openCvResult.Quality.FaceSize
                     };
 
                     result.Landmarks = openCvResult.Landmarks;
@@ -174,7 +172,6 @@ public class RealFaceDetectionService : IFaceDetectionService
                 Contrast = qualityResult.Contrast,
                 Sharpness = qualityResult.Sharpness,
                 FaceSize = qualityResult.FaceSize,
-                //IsQualityAcceptable = qualityResult.IsAcceptable,
                 IsBlurry = qualityResult.Issues.Contains("Image blurry"),
                 IsTooLightingPoor = qualityResult.Issues.Contains("Image too dark") ||
                                    qualityResult.Issues.Contains("Image too bright"),
@@ -345,7 +342,7 @@ public class RealFaceDetectionService : IFaceDetectionService
             }
 
             // Convert database template to AI template
-            var aiTemplate = new OpenCvFaceTemplate
+            var aiTemplate = new AI.Interfaces.OpenCvFaceTemplate
             {
                 EmployeeId = employeeId,
                 TemplateData = templateResult.Data.TemplateData,

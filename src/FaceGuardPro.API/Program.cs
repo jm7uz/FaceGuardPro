@@ -1,4 +1,4 @@
-﻿// src/FaceGuardPro.API/Program.cs
+﻿// src/FaceGuardPro.API/Program.cs - FIXED VERSION
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -24,15 +24,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repository and Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// AI Services (OpenCV)
+// AI Services (OpenCV) - FIXED ORDER
 builder.Services.AddScoped<IOpenCvFaceService, OpenCvFaceService>();
 
-// Core Services - Replace stub with real implementation
+// Core Services - FIXED: Only one registration per interface
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
+// Face Detection Service - FIXED: Remove stub, only real service
 builder.Services.AddScoped<IFaceDetectionService, RealFaceDetectionService>();
 
 // AutoMapper
@@ -93,7 +94,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Swagger/OpenAPI
+// Swagger/OpenAPI - FIXED: Better error handling
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -135,18 +136,35 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Include XML comments
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
+    // FIXED: Better error handling for XML comments
+    try
     {
-        c.IncludeXmlComments(xmlPath);
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+        {
+            c.IncludeXmlComments(xmlPath);
+        }
     }
+    catch (Exception ex)
+    {
+        // Log but don't fail if XML comments not available
+        Console.WriteLine($"Warning: Could not load XML comments: {ex.Message}");
+    }
+
+    // FIXED: Handle potential conflicts
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+// FIXED: Add developer exception page in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 
 // Exception handling middleware
 app.UseExceptionHandling();
@@ -181,5 +199,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapGet("/", () => Results.Redirect("/swagger"));
 }
+
+// FIXED: Add startup logging
+app.Logger.LogInformation("FaceGuard Pro API starting up...");
+app.Logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
 
 app.Run();

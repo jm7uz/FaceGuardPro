@@ -4,6 +4,7 @@ using FaceGuardPro.Shared.Enums;
 using FaceGuardPro.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace FaceGuardPro.API.Controllers;
 
@@ -391,40 +392,31 @@ public class EmployeesController : BaseController
         }
     }
 
-    /// <summary>
-    /// Upload employee photo
-    /// </summary>
-    /// <param name="id">Employee ID</param>
-    /// <param name="photo">Photo file</param>
-    /// <returns>Photo path</returns>
     [HttpPost("{id:guid}/photo")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ApiResponse<string>), 200)]
     [ProducesResponseType(typeof(ApiResponse<object>), 400)]
     [ProducesResponseType(typeof(ApiResponse<object>), 404)]
     [ProducesResponseType(typeof(ApiResponse<object>), 401)]
     public async Task<ActionResult<ApiResponse<string>>> UploadEmployeePhoto(
-        Guid id,
-        [FromForm] IFormFile photo)
+    Guid id,
+    [FromForm] EmployeePhotoUploadRequest request)
     {
         try
         {
             RequirePermission(AuthenticationConstants.Permissions.MANAGE_EMPLOYEES);
 
-            if (photo == null || photo.Length == 0)
-            {
+            if (request.Photo == null || request.Photo.Length == 0)
                 return BadRequest<string>("Photo file is required");
-            }
 
-            if (photo.Length > ImageProcessingConstants.MAX_FILE_SIZE_MB * 1024 * 1024)
-            {
+            if (request.Photo.Length > ImageProcessingConstants.MAX_FILE_SIZE_MB * 1024 * 1024)
                 return BadRequest<string>($"File size cannot exceed {ImageProcessingConstants.MAX_FILE_SIZE_MB}MB");
-            }
 
             using var memoryStream = new MemoryStream();
-            await photo.CopyToAsync(memoryStream);
+            await request.Photo.CopyToAsync(memoryStream);
             var photoData = memoryStream.ToArray();
 
-            var result = await _employeeService.UploadEmployeePhotoAsync(id, photoData, photo.FileName);
+            var result = await _employeeService.UploadEmployeePhotoAsync(id, photoData, request.Photo.FileName);
 
             if (result.Success)
             {
@@ -502,4 +494,11 @@ public class EmployeesController : BaseController
             return InternalServerError<bool>("Error checking employee ID");
         }
     }
+}
+
+
+public class EmployeePhotoUploadRequest
+{
+    [Required]
+    public IFormFile Photo { get; set; } = default!;
 }

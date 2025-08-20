@@ -1,9 +1,10 @@
 ﻿// src/FaceGuardPro.API/Controllers/Face/FaceController.cs
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using FaceGuardPro.Core.Interfaces;
-using FaceGuardPro.Shared.Models;
 using FaceGuardPro.Shared.Constants;
+using FaceGuardPro.Shared.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace FaceGuardPro.API.Controllers.Face;
 
@@ -140,32 +141,27 @@ public class FaceController : BaseController
         }
     }
 
-    /// <summary>
-    /// Create face template for employee
-    /// </summary>
-    /// <param name="employeeId">Employee ID</param>
-    /// <param name="image">Face image for template creation</param>
-    /// <returns>Created face template</returns>
     [HttpPost("templates/{employeeId:guid}")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ApiResponse<FaceTemplateDto>), 201)]
     [ProducesResponseType(typeof(ApiResponse<object>), 400)]
     [ProducesResponseType(typeof(ApiResponse<object>), 404)]
     [ProducesResponseType(typeof(ApiResponse<object>), 401)]
     public async Task<ActionResult<ApiResponse<FaceTemplateDto>>> CreateFaceTemplate(
         Guid employeeId,
-        [FromForm] IFormFile image)
+        [FromForm] TemplatePhotoUploadRequest image)
     {
         try
         {
             RequirePermission(AuthenticationConstants.Permissions.MANAGE_FACE_TEMPLATES);
 
-            if (image == null || image.Length == 0)
+            if (image == null || image.Photo.Length == 0)
             {
                 return BadRequest<FaceTemplateDto>("Image file is required");
             }
 
             using var memoryStream = new MemoryStream();
-            await image.CopyToAsync(memoryStream);
+            await image.Photo.CopyToAsync(memoryStream);
             var imageData = memoryStream.ToArray();
 
             var createDto = new CreateFaceTemplateDto
@@ -295,39 +291,31 @@ public class FaceController : BaseController
         }
     }
 
-    /// <summary>
-    /// Compare two face images
-    /// </summary>
-    /// <param name="image1">First face image</param>
-    /// <param name="image2">Second face image</param>
-    /// <returns>Face comparison result</returns>
     [HttpPost("compare")]
     [ProducesResponseType(typeof(ApiResponse<FaceComparisonResult>), 200)]
     [ProducesResponseType(typeof(ApiResponse<object>), 400)]
     [ProducesResponseType(typeof(ApiResponse<object>), 401)]
     public async Task<ActionResult<ApiResponse<FaceComparisonResult>>> CompareFaces(
-        [FromForm] IFormFile image1,
-        [FromForm] IFormFile image2)
+    [FromForm] FaceComparisonRequest request)
     {
         try
         {
             RequirePermission(AuthenticationConstants.Permissions.MANAGE_FACE_TEMPLATES);
 
-            if (image1 == null || image1.Length == 0)
+            if (request.Image1 == null || request.Image1.Length == 0)
             {
                 return BadRequest<FaceComparisonResult>("First image file is required");
             }
-
-            if (image2 == null || image2.Length == 0)
+            if (request.Image2 == null || request.Image2.Length == 0)
             {
                 return BadRequest<FaceComparisonResult>("Second image file is required");
             }
 
+            // Rest of your logic remains the same
             using var memoryStream1 = new MemoryStream();
             using var memoryStream2 = new MemoryStream();
-
-            await image1.CopyToAsync(memoryStream1);
-            await image2.CopyToAsync(memoryStream2);
+            await request.Image1.CopyToAsync(memoryStream1);
+            await request.Image2.CopyToAsync(memoryStream2);
 
             var imageData1 = memoryStream1.ToArray();
             var imageData2 = memoryStream2.ToArray();
@@ -485,4 +473,16 @@ public class FaceController : BaseController
             return InternalServerError<object>("Face detection system error");
         }
     }
+}
+
+public class FaceComparisonRequest
+{
+    public IFormFile Image1 { get; set; }
+    public IFormFile Image2 { get; set; }
+}
+
+public class TemplatePhotoUploadRequest
+{
+    [Required]
+    public IFormFile Photo { get; set; } = default!;
 }

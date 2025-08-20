@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<!-- OpenCV paketi -->
+		<PackageReference Include="OpenCvSharp4" Version="4.9.0.20240103" />
+		<PackageReference Include="OpenCvSharp4.runtime.win" Version="4.9.0.20240103" />
+		<PackageReference Include="OpenCvSharp4.Extensions" Version="4.9.0.20240103" />
+
+		<!-- Face detection uchun -->
+		<PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+
+		<!-- Logging -->
+		<PackageReference Include="Serilog" Version="3.1.1" />
+		<PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+
+		<!-- Configuration -->
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+
+		<!-- Newtonsoft JSON -->
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FaceGuardPro.Core\FaceGuardPro.Core.csproj" />
+    <ProjectReference Include="..\FaceGuardPro.Data\FaceGuardPro.Data.csproj" />
+    <ProjectReference Include="..\FaceGuardPro.Shared\FaceGuardPro.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

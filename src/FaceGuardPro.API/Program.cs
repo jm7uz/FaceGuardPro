@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// src/FaceGuardPro.API/Program.cs
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -7,6 +8,8 @@ using FaceGuardPro.Data.Context;
 using FaceGuardPro.Data.UnitOfWork;
 using FaceGuardPro.Core.Interfaces;
 using FaceGuardPro.Core.Services;
+using FaceGuardPro.AI.Interfaces;
+using FaceGuardPro.AI.Services;
 using FaceGuardPro.Core.Mapping;
 using FaceGuardPro.API.Middleware;
 
@@ -21,12 +24,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repository and Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// Services
+// AI Services (OpenCV)
+builder.Services.AddScoped<IOpenCvFaceService, OpenCvFaceService>();
+
+// Core Services - Replace stub with real implementation
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IFaceDetectionService, FaceDetectionService>();
+
+builder.Services.AddScoped<IFaceDetectionService, RealFaceDetectionService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -86,7 +93,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -94,7 +101,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "FaceGuard Pro API",
         Version = "v1",
-        Description = "Employee facial recognition and authentication system API",
+        Description = "Employee facial recognition and authentication system API with OpenCV integration",
         Contact = new OpenApiContact
         {
             Name = "FaceGuard Pro Team",
@@ -128,7 +135,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Include XML comments (optional)
+    // Include XML comments
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -141,7 +148,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-// Exception handling middleware (should be first)
+// Exception handling middleware
 app.UseExceptionHandling();
 
 if (app.Environment.IsDevelopment())
@@ -149,7 +156,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FaceGuard Pro API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FaceGuard Pro API v1 - OpenCV Enabled");
         c.RoutePrefix = "swagger";
         c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
     });
@@ -164,7 +171,7 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Custom JWT middleware (for additional processing)
+// Custom JWT middleware
 app.UseJwtMiddleware();
 
 app.MapControllers();

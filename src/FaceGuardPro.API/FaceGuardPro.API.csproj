@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FaceGuardPro.AI\FaceGuardPro.AI.csproj" />
     <ProjectReference Include="..\FaceGuardPro.Core\FaceGuardPro.Core.csproj" />
     <ProjectReference Include="..\FaceGuardPro.Data\FaceGuardPro.Data.csproj" />
     <ProjectReference Include="..\FaceGuardPro.Shared\FaceGuardPro.Shared.csproj" />
